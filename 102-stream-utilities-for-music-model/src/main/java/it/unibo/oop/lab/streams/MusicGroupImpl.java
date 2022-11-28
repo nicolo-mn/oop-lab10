@@ -31,42 +31,68 @@ public final class MusicGroupImpl implements MusicGroup {
 
     @Override
     public Stream<String> orderedSongNames() {
-        return null;
+        return this.songs
+            .stream()
+            .map(x -> x.getSongName())
+            .sorted(String::compareTo);
     }
 
     @Override
     public Stream<String> albumNames() {
-        return null;
+        return this.songs
+            .stream()
+            .map(x -> x.getAlbumName())
+            .filter(x -> x.isPresent())
+            .map(x -> x.get());
     }
 
     @Override
     public Stream<String> albumInYear(final int year) {
-        return null;
+        return this.albums.keySet()
+            .stream()
+            .filter(x -> this.albums.get(x) == year);
     }
 
     @Override
     public int countSongs(final String albumName) {
-        return -1;
+        return (int)this.songs
+            .stream()
+            .filter(x -> x.getAlbumName().isPresent())
+            .filter(x -> x.getAlbumName().get() == albumName)
+            .count();
     }
 
     @Override
     public int countSongsInNoAlbum() {
-        return -1;
+        return (int)this.songs
+            .stream()
+            .filter(x -> x.getAlbumName().isEmpty())
+            .count();
     }
 
     @Override
     public OptionalDouble averageDurationOfSongs(final String albumName) {
-        return null;
+        return this.songs
+            .stream()
+            .filter(x -> x.getAlbumName().isPresent())
+            .filter(x -> x.getAlbumName().get().equals(albumName))
+            .mapToDouble(x -> x.getDuration() / countSongs(albumName))
+            .reduce((x,y) -> x+y);
     }
 
     @Override
     public Optional<String> longestSong() {
-        return null;
+        return Optional.of(this.songs
+            .stream()
+            .max((o1,o2) -> Double.compare(o1.getDuration(), o2.getDuration()))
+            .get()
+            .getSongName());
     }
 
     @Override
     public Optional<String> longestAlbum() {
-        return null;
+        return this.albumNames()
+            .max((o1,o2) -> Double.compare(averageDurationOfSongs(o1).getAsDouble() * countSongs(o1), averageDurationOfSongs(o2).getAsDouble() * countSongs(o2)));
     }
 
     private static final class Song {
